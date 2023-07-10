@@ -123,6 +123,12 @@ app:
         # -- Configure redis sentinel container resources
         resources: {}
         # -- Configure the passbolt deployment resources
+  ssl:
+    # -- Inject your own SSL (base64) certificates in passbolt pod (this conflicts with value k8scerts)
+    # key:
+    # cert:
+    # -- Auto generate self signed certificates using genSelfSignedCertWithKey
+    k8sCerts: true
   resources: {}
 
 # -- Enable email cron
@@ -150,6 +156,11 @@ jwtPath: /etc/passbolt/jwt
 jwtServerPrivate:
 # -- JWT server public key in base64
 jwtServerPublic:
+
+# -- Configure the SSL key passbolt will serve, k8s cert served otherwise
+tlsKey:
+# -- Configure the SSL certificate passbolt will serve, k8s cert served otherwise
+tlsCertificate:
 
 passboltEnv:
   plain:

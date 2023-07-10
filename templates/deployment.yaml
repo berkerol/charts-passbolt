@@ -115,9 +115,16 @@ spec:
               name: {{ $Name }}-cm-app-php
               readOnly: true
             {{- end }}
-            - mountPath: /etc/ssl/certs/passbolt
+            {{- if or ( and ( .Values.app.ssl.key ) ( .Values.app.ssl.cert )) ( .Values.app.ssl.k8sCerts ) }}
+            - mountPath: /etc/ssl/certs/certificate.key
               name: {{ $fullName }}-sec-tls
+              subPath: tls.key
               readOnly: true
+            - mountPath: /etc/ssl/certs/certificate.crt
+              name: {{ $fullName }}-sec-tls
+              subPath: tls.crt
+              readOnly: true
+            {{- end }}
             - name: {{ $fullName }}-sec-gpg
               mountPath: {{ .Values.gpgPath }}
               readOnly: true
@@ -161,9 +168,11 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        {{- if or ( and ( .Values.app.ssl.key ) ( .Values.app.ssl.cert )) ( .Values.app.ssl.k8sCerts ) }}
         - name: {{ $fullName }}-sec-tls
           secret:
             secretName: {{ $Name }}-sec-tls
+        {{- end }}
         - name: {{ $fullName }}-sec-gpg
           secret:
             secretName: {{ $Name }}-sec-gpg
