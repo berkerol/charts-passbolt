@@ -157,11 +157,6 @@ jwtServerPrivate:
 # -- JWT server public key in base64
 jwtServerPublic:
 
-# -- Configure the SSL key passbolt will serve, k8s cert served otherwise
-tlsKey:
-# -- Configure the SSL certificate passbolt will serve, k8s cert served otherwise
-tlsCertificate:
-
 passboltEnv:
   plain:
     # -- Configure passbolt privacy url
