@@ -1,0 +1,90 @@
+---
+suite: ssl self signed certificates
+release:
+  name: test
+values:
+  - values-test.yaml
+tests:
+  - it: should have the correct mounts
+    templates:
+      - deployment.yaml
+    set:
+      app.ssl.k8sCerts: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          any: true
+          count: 1
+          content:
+            mountPath: /etc/ssl/certs/certificate.key
+            name: test-passbolt-depl-srv-sec-tls
+            readOnly: true
+            subPath: tls.key
+  - it: should use helm genSelfSigned function
+    templates:
+      - secret-tls.yaml
+    set:
+      app.ssl.k8sCerts: true
+    asserts:
+      - isNotEmpty:
+          path: data["tls.crt"]
+      - isNotEmpty:
+          path: data["tls.key"]
+      - isNotEmpty:
+          path: data["server.crt"]
+      - isNotEmpty:
+          path: data["server-key.pem"]
+      - isNotEmpty:
+          path: data["ca.crt"]
+      - isNotEmpty:
+          path: data["ca.key"]
+  - it: should not use helm genSelfSigned function regardless k8scerts value
+    templates:
+      - secret-tls.yaml
+    set:
+      app.ssl.key: test
+      app.ssl.cert: test
+      app.ssl.k8sCerts: true
+    asserts:
+      - isNotEmpty:
+          path: data["tls.crt"]
+      - isNotEmpty:
+          path: data["tls.key"]
+      - equal:
+          path: data["tls.crt"]
+          value: test
+      - equal:
+          path: data["tls.key"]
+          value: test
+      - notExists:
+          path: data["server.crt"]
+      - notExists:
+          path: data["server-key.pem"]
+      - notExists:
+          path: data["ca.crt"]
+      - notExists:
+          path: data["ca.key"]
+  - it: should not generate tls-sec, each passbolt pod will generate self signed on boot
+    templates:
+      - secret-tls.yaml
+    set:
+      app.ssl.key:
+      app.ssl.cert:
+      app.ssl.k8sCerts: false
+    asserts:
+      - hasDocuments:
+          count: 0
+  - it: should not mount tls-sec in deployment
+    set:
+      app.ssl.key:
+      app.ssl.cert:
+      app.ssl.k8sCerts: false
+    templates:
+      - deployment.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: test-passbolt-depl-srv-sec-tls
+            secret:
+              secretName: test-passbolt-sec-tls
